@@ -38,7 +38,7 @@ async fn spawn_app() -> TestApp {
 
     let server =
         zero2prod::startup::run(listener, connection_pool.clone()).expect("Failed to bind address");
-    let _ = tokio::spawn(server);
+    let _ = tokio::spawn(server).await;
 
     TestApp {
         address,
@@ -48,7 +48,7 @@ async fn spawn_app() -> TestApp {
 
 pub async fn configure_database(config: &DatabaseSettings) -> PgPool {
     let mut connection =
-        PgConnection::connect(&config.connection_string_without_db().expose_secret())
+        PgConnection::connect(config.connection_string_without_db().expose_secret())
             .await
             .expect("Failed to connect to Postgres.");
 
@@ -57,7 +57,7 @@ pub async fn configure_database(config: &DatabaseSettings) -> PgPool {
         .await
         .expect("Failed to create database.");
 
-    let connection_pool = PgPool::connect(&config.connection_string().expose_secret())
+    let connection_pool = PgPool::connect(config.connection_string().expose_secret())
         .await
         .expect("Failed to connect to Postgres.");
 
@@ -132,8 +132,7 @@ async fn subscribe_returns_a_400_when_data_is_missing() {
         assert_eq!(
             400,
             response.status().as_u16(),
-            "The API did not fail with 400 Bad Request when the payload was {}.",
-            error_message
+            "The API did not fail with 400 Bad Request when the payload was {error_message}."
         );
     }
 }
