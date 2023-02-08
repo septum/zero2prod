@@ -38,7 +38,8 @@ async fn spawn_app() -> TestApp {
 
     let server =
         zero2prod::startup::run(listener, connection_pool.clone()).expect("Failed to bind address");
-    let _ = tokio::spawn(server).await;
+
+    drop(tokio::spawn(server));
 
     TestApp {
         address,
