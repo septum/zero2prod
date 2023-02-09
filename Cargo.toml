@@ -30,12 +30,13 @@ uuid = { version = "1", features = ["v4"] }
 version = "0.6"
 default-features = false
 features = [
-"runtime-tokio-rustls",
-"macros",
-"postgres",
-"uuid",
-"chrono",
-"migrate"
+    "runtime-tokio-rustls",
+    "macros",
+    "postgres",
+    "uuid",
+    "chrono",
+    "migrate",
+    "offline"
 ]
 
 [dev-dependencies]
