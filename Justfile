@@ -27,3 +27,6 @@ coverage:
 
 audit:
     cargo audit
+
+expand:
+    cargo expand
