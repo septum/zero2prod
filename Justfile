@@ -10,6 +10,7 @@ setup:
     cargo install cargo-llvm-cov
     cargo install cargo-audit
     cargo install --version='~0.8' sqlx-cli --no-default-features --features rustls,postgres
+    cargo install cargo-udeps
 
 dev:
     cargo watch -x check -x test -x run
@@ -46,3 +47,6 @@ cycle_db:
 
 gen_query_cache:
     cargo sqlx prepare --workspace --check -- --all-targets
+
+rm_udeps:
+    cargo udeps
