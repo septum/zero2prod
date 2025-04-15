@@ -40,3 +40,6 @@ migrate:
 
 drop_db:
     docker kill $(docker ps --filter 'name=postgres' --format '{{'{{.ID}}'}}')
+
+gen_query_cache:
+    cargo sqlx prepare --workspace --check -- --all-targets
