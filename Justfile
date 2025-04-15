@@ -37,3 +37,6 @@ init_db:
 
 migrate:
     SKIP_DOCKER=true scripts/init_db.sh
+
+drop_db:
+    docker kill $(docker ps --filter 'name=postgres' --format '{{'{{.ID}}'}}')
