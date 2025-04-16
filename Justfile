@@ -50,7 +50,7 @@ gen_query_cache:
     cargo sqlx prepare --workspace --check -- --all-targets
 
 rm_udeps:
-    cargo udeps
+    cargo +nightly udeps
 
 test_logs:
     TEST_LOG=true cargo test health_check_works | bunyan
