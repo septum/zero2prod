@@ -11,9 +11,10 @@ setup:
     cargo install cargo-audit
     cargo install --version='~0.8' sqlx-cli --no-default-features --features rustls,postgres
     cargo install cargo-udeps
+    cargo install bunyan
 
 dev:
-    cargo watch -x check -x test -x run
+    cargo watch -x check -x test -x run | bunyan
 
 test:
     cargo test
@@ -50,3 +51,6 @@ gen_query_cache:
 
 rm_udeps:
     cargo udeps
+
+test_logs:
+    TEST_LOG=true cargo test health_check_works | bunyan
