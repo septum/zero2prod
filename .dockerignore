@@ -1,0 +1,13 @@
+.git/
+.github/
+.env
+.gitignore
+.dockerignore
+target/
+tests/
+Dockerfile
+scripts/
+migrations/
+Justfile
+spec.yaml
+README.md

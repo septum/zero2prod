@@ -54,3 +54,9 @@ rm_udeps:
 
 test_logs:
     TEST_LOG=true cargo test health_check_works | bunyan
+
+docker_build:
+    docker build --tag zero2prod .
+
+docker_run:
+    docker run -p 8000:8000 zero2prod | bunyan
