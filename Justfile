@@ -60,3 +60,12 @@ docker_build:
 
 docker_run:
     docker run -p 8000:8000 zero2prod | bunyan
+
+doctl_create:
+    doctl apps create --spec spec.yaml
+
+doctl_update:
+    doctl apps update --spec=spec.yaml $(doctl app list --format ID --no-header)
+
+doctl_delete:
+    doctl apps delete $(doctl app list --format ID --no-header)
