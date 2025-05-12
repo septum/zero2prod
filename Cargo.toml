@@ -41,7 +41,7 @@ features = ["json", "rustls-tls"]
 [dev-dependencies]
 fake = "2.9"
 rand = "0.8"
-quickcheck = "1.0.3"
+quickcheck = "1"
 quickcheck_macros = "1"
 
 [lib]
