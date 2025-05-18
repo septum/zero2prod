@@ -47,7 +47,7 @@ cycle_db:
     @just drop_db init_db
 
 gen_query_cache:
-    cargo sqlx prepare --workspace --check -- --all-targets
+    cargo sqlx prepare --workspace -- --all-targets
 
 rm_udeps:
     cargo +nightly udeps
