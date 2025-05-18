@@ -46,6 +46,7 @@ quickcheck = "1"
 quickcheck_macros = "1"
 wiremock = "0.6"
 serde_json = "1"
+linkify = "0.10"
 
 [lib]
 path = "src/lib.rs"
