@@ -23,7 +23,7 @@ format:
     cargo fmt -- --check
 
 lint:
-    cargo clippy -- -D warnings
+    SQLX_OFFLINE=true cargo clippy -- -D warnings
 
 coverage:
     cargo llvm-cov
