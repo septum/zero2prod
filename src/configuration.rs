@@ -68,7 +68,7 @@ impl DatabaseSettings {
 pub fn get_configuration() -> Result<Settings, config::ConfigError> {
     #[cfg(debug_assertions)]
     {
-        dotenv::from_filename(".env.local").ok();
+        dotenvy::from_filename(".env.local").ok();
         tracing::info!("Loaded environment from .env.local")
     }
 
