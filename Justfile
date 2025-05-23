@@ -69,3 +69,6 @@ doctl_update:
 
 doctl_delete:
     doctl apps delete $(doctl app list --format ID --no-header)
+
+poll_ingress:
+    ./scripts/poll_ingress.sh
