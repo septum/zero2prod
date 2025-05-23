@@ -66,6 +66,12 @@ impl DatabaseSettings {
 }
 
 pub fn get_configuration() -> Result<Settings, config::ConfigError> {
+    #[cfg(debug_assertions)]
+    {
+        dotenv::from_filename(".env.local").ok();
+        tracing::info!("Loaded environment from .env.local")
+    }
+
     let base_path = std::env::current_dir().expect("Failed to determine the current directory");
     let configuration_directory = base_path.join("configuration");
     // Detect the running environment.
