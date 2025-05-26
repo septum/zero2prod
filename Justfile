@@ -62,7 +62,7 @@ docker_run:
     docker run -p 8000:8000 zero2prod | bunyan
 
 doctl_create:
-    doctl apps create --spec spec.yaml
+    doctl apps create --project-id zero2prod --spec spec.yaml
 
 doctl_update:
     doctl apps update --spec=spec.yaml $(doctl app list --format ID --no-header)
