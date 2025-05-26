@@ -27,6 +27,14 @@ test_logs:
 lint:
     SQLX_OFFLINE=true cargo clippy -- -D warnings
 
+# Format files
+format:
+    cargo fmt
+
+# Precommit git hook
+precommit:
+    @just format lint
+
 # Test coverage
 coverage:
     cargo llvm-cov
