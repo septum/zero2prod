@@ -138,3 +138,28 @@ async fn subscribe_sends_a_confirmation_email_with_a_link() {
     // The two links should be identical
     assert_eq!(confirmation_links.html, confirmation_links.plain_text);
 }
+
+#[tokio::test]
+async fn subscribe_sends_the_same_confirmation_email_if_subscription_happens_twice() {
+    // Arrange
+    let app = spawn_app().await;
+    let body = "name=le%20guin&email=ursula_le_guin%40gmail.com";
+    Mock::given(path("/email"))
+        .and(method("POST"))
+        .respond_with(ResponseTemplate::new(200))
+        .expect(2)
+        .mount(&app.email_server)
+        .await;
+
+    // Act - user tries to subscribe twice
+    app.post_subscriptions(body.into()).await;
+    app.post_subscriptions(body.into()).await;
+
+    // Assert - same confirmation links for both subscription tries
+    let email_requests = app.email_server.received_requests().await.unwrap();
+    let first_links = app.get_confirmation_links(&email_requests[0]);
+    let second_links = app.get_confirmation_links(&email_requests[1]);
+
+    assert_eq!(first_links.html, second_links.html);
+    assert_eq!(first_links.plain_text, second_links.plain_text);
+}
