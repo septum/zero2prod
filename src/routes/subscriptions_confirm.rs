@@ -18,9 +18,18 @@ pub async fn confirm(parameters: web::Query<Parameters>, pool: web::Data<PgPool>
         // Non-existing token!
         None => HttpResponse::Unauthorized().finish(),
         Some(subscriber_id) => {
-            if confirm_subscriber(&pool, subscriber_id).await.is_err() {
-                return HttpResponse::InternalServerError().finish();
+            match check_subscriber_is_confirmed(&pool, subscriber_id).await {
+                Ok(false) => {
+                    if confirm_subscriber(&pool, subscriber_id).await.is_err() {
+                        return HttpResponse::InternalServerError().finish();
+                    }
+                }
+                Err(_) => {
+                    return HttpResponse::InternalServerError().finish();
+                }
+                Ok(true) => {}
             }
+
             HttpResponse::Ok().finish()
         }
     }
@@ -59,4 +68,28 @@ WHERE subscription_token = $1",
     })?;
 
     Ok(result.map(|r| r.subscriber_id))
+}
+
+#[tracing::instrument(
+    name = "Checking if subscriber has a confirmed status in the database",
+    skip(pool, subscriber_id)
+)]
+pub async fn check_subscriber_is_confirmed(
+    pool: &PgPool,
+    subscriber_id: Uuid,
+) -> Result<bool, sqlx::Error> {
+    let record = sqlx::query!(
+        r#"
+        SELECT status FROM subscriptions
+        WHERE id = $1
+        "#,
+        subscriber_id
+    )
+    .fetch_one(pool)
+    .await
+    .map_err(|e| {
+        tracing::error!("Failed to execute query: {:?}", e);
+        e
+    })?;
+    Ok(record.status == "confirmed")
 }
