@@ -28,6 +28,12 @@ impl SubscriptionToken {
     }
 }
 
+impl Default for SubscriptionToken {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl AsRef<str> for SubscriptionToken {
     fn as_ref(&self) -> &str {
         &self.0
