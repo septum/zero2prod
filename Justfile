@@ -72,3 +72,8 @@ doctl_delete:
 
 poll_ingress:
     ./scripts/poll_ingress.sh
+
+subscribe name='septum' email='me@septum.computer':
+    curl -i -X POST \
+    --data 'name={{name}}&email={{email}}' \
+    http://localhost:8000/subscriptions
