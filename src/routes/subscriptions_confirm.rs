@@ -2,14 +2,31 @@ use actix_web::{HttpResponse, web};
 use sqlx::PgPool;
 use uuid::Uuid;
 
+use crate::domain::SubscriptionToken;
+
 #[derive(serde::Deserialize)]
 pub struct Parameters {
     subscription_token: String,
 }
 
+impl TryFrom<String> for SubscriptionToken {
+    type Error = String;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        SubscriptionToken::parse(value)
+    }
+}
+
 #[tracing::instrument(name = "Confirm a pending subscriber", skip(parameters, pool))]
 pub async fn confirm(parameters: web::Query<Parameters>, pool: web::Data<PgPool>) -> HttpResponse {
-    let id = match get_subscriber_id_from_token(&pool, &parameters.subscription_token).await {
+    let incoming_token: SubscriptionToken = match parameters.0.subscription_token.try_into() {
+        Ok(token) => token,
+        Err(err) => {
+            tracing::error!(err);
+            return HttpResponse::BadRequest().finish();
+        }
+    };
+    let id = match get_subscriber_id_from_token(&pool, incoming_token.as_ref()).await {
         Ok(id) => id,
         Err(_) => return HttpResponse::InternalServerError().finish(),
     };
