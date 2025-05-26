@@ -14,8 +14,6 @@ pub struct Application {
     server: Server,
 }
 impl Application {
-    // We have converted the `build` function into a constructor for
-    // `Application`.
     pub async fn build(configuration: Settings) -> Result<Self, std::io::Error> {
         let connection_pool = get_connection_pool(&configuration.database);
         let sender_email = configuration
@@ -41,15 +39,14 @@ impl Application {
             email_client,
             configuration.application.base_url,
         )?;
-        // We "save" the bound port in one of `Application`'s fields
+
         Ok(Self { port, server })
     }
 
     pub fn port(&self) -> u16 {
         self.port
     }
-    // A more expressive name that makes it clear that
-    // this function only returns when the application is stopped.
+
     pub async fn run_until_stopped(self) -> Result<(), std::io::Error> {
         self.server.await
     }

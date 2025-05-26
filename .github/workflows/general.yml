@@ -34,8 +34,6 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v4
 
-      # This GitHub Action installs a Rust toolchain using rustup. It is designed for one-line concise usage and good defaults.
-      # It also takes care of caching intermediate build artifacts.
       - name: Install the Rust toolchain
         uses: actions-rust-lang/setup-rust-toolchain@v1
 

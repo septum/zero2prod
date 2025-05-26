@@ -110,8 +110,7 @@ async fn subscribe_sends_a_confirmation_email_for_valid_data() {
     // Act
     app.post_subscriptions(body.into()).await;
 
-    // Assert
-    // Mock asserts on drop
+    // Assert - Mock asserts on drop
 }
 
 #[tokio::test]
@@ -122,9 +121,6 @@ async fn subscribe_sends_a_confirmation_email_with_a_link() {
     Mock::given(path("/email"))
         .and(method("POST"))
         .respond_with(ResponseTemplate::new(200))
-        // We are not setting an expectation here anymore
-        // The test is focused on another aspect of the app
-        // behaviour.
         .mount(&app.email_server)
         .await;
 

@@ -36,6 +36,7 @@ where
         .with(JsonStorageLayer)
         .with(formatting_layer)
 }
+
 /// Register a subscriber as global default to process span data.
 ///
 /// It should only be called once!

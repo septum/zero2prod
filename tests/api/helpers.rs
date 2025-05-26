@@ -66,6 +66,7 @@ impl TestApp {
         };
         let html = get_link(&body["HtmlBody"].as_str().unwrap());
         let plain_text = get_link(&body["TextBody"].as_str().unwrap());
+
         ConfirmationLinks { html, plain_text }
     }
 }
@@ -88,7 +89,6 @@ pub async fn spawn_app() -> TestApp {
         c
     };
 
-    // Create and migrate the database
     configure_database(&configuration.database).await;
 
     let application = Application::build(configuration.clone())
@@ -128,5 +128,6 @@ async fn configure_database(config: &DatabaseSettings) -> PgPool {
         .run(&connection_pool)
         .await
         .expect("Failed to migrate the database");
+
     connection_pool
 }

@@ -14,6 +14,17 @@ pub struct FormData {
     name: String,
 }
 
+impl TryFrom<FormData> for NewSubscriber {
+    type Error = String;
+
+    fn try_from(value: FormData) -> Result<Self, Self::Error> {
+        let name = SubscriberName::parse(value.name)?;
+        let email = SubscriberEmail::parse(value.email)?;
+
+        Ok(Self { email, name })
+    }
+}
+
 #[tracing::instrument(
     name = "Saving new subscriber details in the database",
     skip(new_subscriber, transaction)
@@ -36,10 +47,8 @@ pub async fn insert_subscriber(
     transaction.execute(query).await.map_err(|e| {
         tracing::error!("Failed to execute query: {:?}", e);
         e
-        // Using the `?` operator to return early
-        // if the function failed, returning a sqlx::Error
-        // We will talk about error handling in depth later!
     })?;
+
     Ok(subscriber_id)
 }
 
@@ -64,6 +73,7 @@ pub async fn fetch_subscription_token(
         tracing::error!("Failed to execute query: {:?}", e);
         e
     })?;
+
     Ok(record.map(|r| r.subscription_token))
 }
 
@@ -88,17 +98,8 @@ pub async fn check_subscriber_exists(
         tracing::error!("Failed to execute query: {:?}", e);
         e
     })?;
+
     Ok(record.map(|r| (r.id, r.status)))
-}
-
-impl TryFrom<FormData> for NewSubscriber {
-    type Error = String;
-
-    fn try_from(value: FormData) -> Result<Self, Self::Error> {
-        let name = SubscriberName::parse(value.name)?;
-        let email = SubscriberEmail::parse(value.email)?;
-        Ok(Self { email, name })
-    }
 }
 
 #[tracing::instrument(
@@ -173,6 +174,7 @@ pub async fn subscribe(
             return HttpResponse::InternalServerError().finish();
         }
     }
+
     HttpResponse::Ok().finish()
 }
 
@@ -195,6 +197,7 @@ pub async fn store_token(
         tracing::error!("Failed to execute query: {:?}", e);
         e
     })?;
+
     Ok(())
 }
 
@@ -225,6 +228,7 @@ pub async fn send_confirmation_email(
             panic!("Could not build templates: {error}");
         }
     };
+
     email_client
         .send_email(new_subscriber.email, "Welcome!", &html_body, &plain_body)
         .await

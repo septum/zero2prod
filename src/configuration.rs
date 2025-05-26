@@ -52,7 +52,6 @@ impl DatabaseSettings {
         let ssl_mode = if self.require_ssl {
             PgSslMode::Require
         } else {
-            // Try an encrypted connection, fallback to unencrypted if it fails
             PgSslMode::Prefer
         };
         PgConnectOptions::new()
@@ -65,42 +64,6 @@ impl DatabaseSettings {
     }
 }
 
-pub fn get_configuration() -> Result<Settings, config::ConfigError> {
-    #[cfg(debug_assertions)]
-    {
-        dotenvy::from_filename(".env.local").ok();
-        tracing::info!("Loaded environment from .env.local")
-    }
-
-    let base_path = std::env::current_dir().expect("Failed to determine the current directory");
-    let configuration_directory = base_path.join("configuration");
-    // Detect the running environment.
-    // Default to `local` if unspecified.
-    let environment: Environment = std::env::var("APP_ENVIRONMENT")
-        .unwrap_or_else(|_| "local".into())
-        .try_into()
-        .expect("Failed to parse APP_ENVIRONMENT.");
-    let environment_filename = format!("{}.yaml", environment.as_str());
-    let settings = config::Config::builder()
-        .add_source(config::File::from(
-            configuration_directory.join("base.yaml"),
-        ))
-        .add_source(config::File::from(
-            configuration_directory.join(environment_filename),
-        ))
-        // Add in settings from environment variables (with a prefix of APP and
-        // '__' as separator)
-        // E.g. `APP_APPLICATION__PORT=5001 would set `Settings.application.port`
-        .add_source(
-            config::Environment::with_prefix("APP")
-                .prefix_separator("_")
-                .separator("__"),
-        )
-        .build()?;
-    settings.try_deserialize::<Settings>()
-}
-
-/// The possible runtime environment for our application.
 pub enum Environment {
     Local,
     Production,
@@ -128,4 +91,34 @@ impl TryFrom<String> for Environment {
             )),
         }
     }
+}
+
+pub fn get_configuration() -> Result<Settings, config::ConfigError> {
+    #[cfg(debug_assertions)]
+    {
+        dotenvy::from_filename(".env.local").ok();
+        tracing::info!("Loaded environment from .env.local")
+    }
+
+    let base_path = std::env::current_dir().expect("Failed to determine the current directory");
+    let configuration_directory = base_path.join("configuration");
+    let environment: Environment = std::env::var("APP_ENVIRONMENT")
+        .unwrap_or_else(|_| "local".into())
+        .try_into()
+        .expect("Failed to parse APP_ENVIRONMENT.");
+    let environment_filename = format!("{}.yaml", environment.as_str());
+    let settings = config::Config::builder()
+        .add_source(config::File::from(
+            configuration_directory.join("base.yaml"),
+        ))
+        .add_source(config::File::from(
+            configuration_directory.join(environment_filename),
+        ))
+        .add_source(
+            config::Environment::with_prefix("APP")
+                .prefix_separator("_")
+                .separator("__"),
+        )
+        .build()?;
+    settings.try_deserialize::<Settings>()
 }

@@ -32,8 +32,7 @@ pub async fn confirm(parameters: web::Query<Parameters>, pool: web::Data<PgPool>
     };
 
     match id {
-        // Non-existing token!
-        None => HttpResponse::Unauthorized().finish(),
+        None => HttpResponse::Unauthorized().finish(), // Non-existing token!
         Some(subscriber_id) => {
             match check_subscriber_is_confirmed(&pool, subscriber_id).await {
                 Ok(false) => {

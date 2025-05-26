@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+ # executed commands are printed to the terminal
+set -x
+
+# e - exit immediately on non zero status
+# o pipefail -  prevents errors in a pipeline from being masked
+set -eo pipefail
+
 INGRESS=$(doctl apps list --no-header --format DefaultIngress | awk '{$1=$1};1')
 
 until [[ $INGRESS != '' ]]

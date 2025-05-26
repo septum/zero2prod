@@ -41,6 +41,7 @@ impl EmailClient {
         timeout: std::time::Duration,
     ) -> Self {
         let http_client = Client::builder().timeout(timeout).build().unwrap();
+
         Self {
             http_client,
             base_url,
@@ -74,6 +75,7 @@ impl EmailClient {
             .send()
             .await?
             .error_for_status()?;
+
         Ok(())
     }
 }
@@ -95,11 +97,8 @@ mod tests {
 
     impl wiremock::Match for SendEmailBodyMatcher {
         fn matches(&self, request: &Request) -> bool {
-            // Try to parse the body as a JSON value
             let result: Result<serde_json::Value, _> = serde_json::from_slice(&request.body);
             if let Ok(body) = result {
-                // Check that all the mandatory fields are populated
-                // without inspecting the field values
                 body.get("From").is_some()
                     && body.get("To").is_some()
                     && body.get("Subject").is_some()
@@ -145,7 +144,6 @@ mod tests {
             .and(header("Content-Type", "application/json"))
             .and(path("/email"))
             .and(method("POST"))
-            // Use our custom matcher!
             .and(SendEmailBodyMatcher)
             .respond_with(ResponseTemplate::new(200))
             .expect(1)
@@ -157,8 +155,7 @@ mod tests {
             .send_email(email(), &subject(), &content(), &content())
             .await;
 
-        // Assert
-        // Mock expectations are checked on drop
+        // Assert - Mock expectations are checked on drop
     }
 
     #[tokio::test]
@@ -189,7 +186,6 @@ mod tests {
         let email_client = email_client(mock_server.uri());
 
         Mock::given(any())
-            // Not a 200 anymore!
             .respond_with(ResponseTemplate::new(500))
             .expect(1)
             .mount(&mock_server)
