@@ -53,7 +53,7 @@ rm_udeps:
     cargo +nightly udeps
 
 test_logs:
-    TEST_LOG=true cargo test health_check_works | bunyan
+    TEST_LOG=true cargo test | bunyan
 
 docker_build:
     docker build --tag zero2prod .
