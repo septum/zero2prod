@@ -1,11 +1,9 @@
 use actix_web::{HttpResponse, web};
 use chrono::Utc;
-use rand::distributions::Alphanumeric;
-use rand::{Rng, thread_rng};
 use sqlx::{Executor, PgPool, Postgres, Transaction};
 use uuid::Uuid;
 
-use crate::domain::{NewSubscriber, SubscriberEmail, SubscriberName};
+use crate::domain::{NewSubscriber, SubscriberEmail, SubscriberName, SubscriptionToken};
 use crate::email_client::EmailClient;
 use crate::startup::ApplicationBaseUrl;
 
@@ -13,15 +11,6 @@ use crate::startup::ApplicationBaseUrl;
 pub struct FormData {
     email: String,
     name: String,
-}
-
-/// Generate a random 25-characters-long case-sensitive subscription token.
-fn generate_subscription_token() -> String {
-    let mut rng = thread_rng();
-    std::iter::repeat_with(|| rng.sample(Alphanumeric))
-        .map(char::from)
-        .take(25)
-        .collect()
 }
 
 #[tracing::instrument(
@@ -160,8 +149,8 @@ pub async fn subscribe(
             Ok(subscriber_id) => subscriber_id,
             Err(_) => return HttpResponse::InternalServerError().finish(),
         };
-        let subscription_token = generate_subscription_token();
-        if store_token(&mut transaction, subscriber_id, &subscription_token)
+        let subscription_token = SubscriptionToken::new();
+        if store_token(&mut transaction, subscriber_id, subscription_token.as_ref())
             .await
             .is_err()
         {
@@ -175,7 +164,7 @@ pub async fn subscribe(
             &email_client,
             new_subscriber,
             &base_url.0,
-            &subscription_token,
+            subscription_token.as_ref(),
         )
         .await
         .is_err()
