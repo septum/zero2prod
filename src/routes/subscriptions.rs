@@ -1,10 +1,11 @@
 use actix_web::{HttpResponse, web};
 use chrono::Utc;
 use sqlx::{Executor, PgPool, Postgres, Transaction};
+use tera::Context;
 use uuid::Uuid;
 
 use crate::domain::{NewSubscriber, SubscriberEmail, SubscriberName, SubscriptionToken};
-use crate::email_client::EmailClient;
+use crate::email_client::{EmailClient, TEMPLATES};
 use crate::startup::ApplicationBaseUrl;
 
 #[derive(serde::Deserialize)]
@@ -215,11 +216,15 @@ pub async fn send_confirmation_email(
         "Welcome to our newsletter!\nVisit {} to confirm your subscription.",
         confirmation_link
     );
-    let html_body = format!(
-        "Welcome to our newsletter!<br />\
-        Click <a href=\"{}\">here</a> to confirm your subscription.",
-        confirmation_link
-    );
+    let mut context = Context::new();
+    context.insert("subscriber_name", new_subscriber.name.as_ref());
+    context.insert("confirmation_link", &confirmation_link);
+    let html_body = match TEMPLATES.render("welcome.html", &context) {
+        Ok(body) => body,
+        Err(error) => {
+            panic!("Could not build templates: {error}");
+        }
+    };
     email_client
         .send_email(new_subscriber.email, "Welcome!", &html_body, &plain_body)
         .await
