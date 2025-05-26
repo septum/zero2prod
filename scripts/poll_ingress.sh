@@ -7,5 +7,4 @@ do
     sleep 5
     INGRESS=$(doctl apps list --no-header --format DefaultIngress | awk '{$1=$1};1')
 done
-printf "%q" $INGRESS
 >&2 echo "Ingress is $INGRESS"
