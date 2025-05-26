@@ -38,6 +38,23 @@ async fn confirmations_without_token_are_rejected_with_a_400() {
 }
 
 #[tokio::test]
+async fn confirmations_with_non_existing_token_are_rejected_with_a_401() {
+    // Arrange
+    let app = spawn_app().await;
+
+    // Act
+    let response = reqwest::get(&format!(
+        "{}/subscriptions/confirm?subscription_token=qtRU7OFzB5y6QFTN1D4WquVoU",
+        app.address
+    ))
+    .await
+    .unwrap();
+
+    // Assert
+    assert_eq!(response.status().as_u16(), 401);
+}
+
+#[tokio::test]
 async fn clicking_on_the_confirmation_link_confirms_a_subscriber() {
     // Arrange
     let app = spawn_app().await;
