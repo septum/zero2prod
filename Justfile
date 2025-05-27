@@ -25,8 +25,8 @@ watch:
     cargo watch -x check -x test -x run | bunyan
 
 # Run tests with logs
-test_logs:
-    TEST_LOG=true cargo test | bunyan
+test_logs test='':
+    RUST_LOG="sqlx=error,info" TEST_LOG=true cargo test {{test}} | bunyan
 
 # Lint the files in a similar fashion as the CI pipeline
 lint:
