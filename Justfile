@@ -15,8 +15,13 @@ setup:
     cargo install cargo-udeps
     cargo install bunyan
 
-# Workflow loop
+# dev workflow
 dev:
+    @-just init_db # `-` prefix means to ignore if there's a non-zero status
+    @just watch
+
+# watch multiple cargo commands
+watch:
     cargo watch -x check -x test -x run | bunyan
 
 # Run tests with logs
