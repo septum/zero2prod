@@ -38,7 +38,7 @@ format:
 
 # Precommit git hook
 precommit:
-    @just format lint
+    @just format lint check_query_cache
 
 # Test coverage
 coverage:
@@ -71,6 +71,10 @@ cycle_db:
 # Generate SQLX query cache
 gen_query_cache:
     cargo sqlx prepare --workspace -- --all-targets
+
+# Check SQLX query cache
+check_query_cache:
+    cargo sqlx prepare --check --workspace -- --all-targets
 
 # Remove unused dependencies
 rm_udeps:
