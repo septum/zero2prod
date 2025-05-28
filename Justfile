@@ -32,9 +32,9 @@ test_w_logs test='':
 lint:
     SQLX_OFFLINE=true cargo clippy -- -D warnings
 
-# Format files
+# Check files format
 format:
-    cargo fmt
+    cargo fmt --check
 
 # Precommit git hook
 precommit:
