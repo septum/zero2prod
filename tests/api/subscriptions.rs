@@ -159,6 +159,7 @@ async fn subscribe_sends_the_same_confirmation_email_if_subscription_happens_twi
     assert_eq!(first_links.html, second_links.html);
     assert_eq!(first_links.plain_text, second_links.plain_text);
 }
+
 #[tokio::test]
 async fn subscribe_fails_if_there_is_a_fatal_database_error() {
     // Arrange
