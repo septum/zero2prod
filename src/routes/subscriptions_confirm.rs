@@ -61,7 +61,7 @@ pub async fn confirm(
     Ok(match id {
         None => HttpResponse::Unauthorized().finish(), // Non-existing token!
         Some(subscriber_id) => {
-            if check_subscriber_is_confirmed(&pool, subscriber_id)
+            if !check_subscriber_is_confirmed(&pool, subscriber_id)
                 .await
                 .context("Failed to check if subcriber is already confirmed")?
             {
