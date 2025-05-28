@@ -38,7 +38,7 @@ format:
 
 # Precommit git hook
 precommit:
-    @just format lint check_query_cache
+    @just format lint check_query_cache test_w_logs
 
 # Test coverage
 coverage:
