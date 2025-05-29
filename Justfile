@@ -22,7 +22,7 @@ dev:
 
 # watch multiple cargo commands
 watch:
-    cargo watch -x check -x test -x run | bunyan
+    cargo watch -x check -x 'test --features="mocks"' -x run | bunyan
 
 # Run tests with logs
 test_w_logs test='':

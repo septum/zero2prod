@@ -95,6 +95,7 @@ impl TryFrom<String> for Environment {
 
 pub fn get_configuration() -> Result<Settings, config::ConfigError> {
     #[cfg(debug_assertions)]
+    #[cfg(not(feature = "mocks"))]
     {
         dotenvy::from_filename(".env.local").ok();
         tracing::info!("Loaded environment from .env.local")
