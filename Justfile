@@ -109,3 +109,10 @@ subscribe name='septum' email='me@septum.computer':
     curl -i -X POST \
     --data 'name={{name}}&email={{email}}' \
     http://localhost:8000/subscriptions
+
+# Send a request to newsletters
+publish title='New Issue!':
+    curl -i -X POST \
+    -H 'Content-Type: application/json' \
+    --data '{"title":"{{title}}","content":{"html":"<h1>Hello World</h1>","text":"Hello World"}}' \
+    http://localhost:8000/newsletters
