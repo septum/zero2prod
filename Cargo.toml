@@ -37,7 +37,7 @@ validator = "0.20"
 [dependencies.reqwest]
 version = "0.12"
 default-features = false
-features = ["json", "rustls-tls"]
+features = ["json", "rustls-tls", "cookies"]
 
 [dependencies.sqlx]
 version = "0.8"
