@@ -56,6 +56,10 @@ expand:
 init_db:
     scripts/init_db.sh
 
+# Start redis in docker
+init_redis:
+    scripts/init_redis.sh
+
 # Run DB migrations
 migrate:
     SKIP_DOCKER=true scripts/init_db.sh

@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+actix-session = { version = "0.10", features = ["redis-session-rustls"] }
 actix-web = "4"
 actix-web-flash-messages = { version = "0.5", features = ["cookies"] }
 anyhow = "1"
