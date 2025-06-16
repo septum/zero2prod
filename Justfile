@@ -18,6 +18,7 @@ setup:
 # dev workflow
 dev:
     @-just init_db # `-` prefix means to ignore if there's a non-zero status
+    @-just init_redis
     @just watch
 
 # watch multiple cargo commands
