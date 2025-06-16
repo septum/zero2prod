@@ -19,11 +19,15 @@ setup:
 dev:
     @-just init_db # `-` prefix means to ignore if there's a non-zero status
     @-just init_redis
-    @just watch
+    @just watch_no_test
 
 # watch multiple cargo commands
 watch:
     cargo watch -x check -x 'test --features="mocks"' -x run | bunyan
+
+# watch without tests
+watch_no_test:
+    cargo watch -x check -x run | bunyan
 
 # Run tests with logs
 test_w_logs test='':
