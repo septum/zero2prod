@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const quill = new Quill("#editor", { theme: "snow" });
+        const form = document.querySelector("form");
+
+        form.addEventListener("submit", (event) => {
+          event.preventDefault();
+
+          try {
+            const body = JSON.stringify({
+              title: event.target.title.value,
+              content: {
+                html: quill.getSemanticHTML(),
+                text: quill.getText(),
+              },
+            });
+
+            console.log(body);
+            fetch("/newsletters", {
+              method: "post",
+              headers: {
+                "Content-Type": "application/json; charset=utf-8",
+              },
+              body,
+            });
+          } catch (e) {
+            console.log(e);
+          }
+        });
+      });
+    </script>
+    <title>Send a newsletter issue</title>
+  </head>
+  <body>
+    <form>
+      <label
+        >Title
+        <input type="title" placeholder="Enter newsletter title" name="title" />
+      </label>
+      <br />
+      <br />
+      <div style="max-width: 400px">
+        <div id="editor"></div>
+      </div>
+      <br />
+      <button type="submit">Submit newsletter issue</button>
+    </form>
+    <p><a href="/admin/dashboard">&lt;- Back</a></p>
+  </body>
+</html>
