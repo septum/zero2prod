@@ -11,7 +11,7 @@ use crate::{
 };
 
 #[derive(serde::Deserialize)]
-pub struct BodyData {
+pub struct NewsletterData {
     title: String,
     content: Content,
 }
@@ -28,15 +28,27 @@ pub struct Content {
     fields(user_id=%*user_id)
 )]
 pub async fn publish_newsletter(
-    body: web::Json<BodyData>,
+    body: web::Json<NewsletterData>,
     pool: web::Data<PgPool>,
     email_client: web::Data<EmailClient>,
     user_id: web::ReqData<UserId>,
 ) -> Result<HttpResponse, actix_web::Error> {
+    if body.title.is_empty() {
+        FlashMessage::error("The title cannot be empty.").send();
+        return Ok(see_other("/admin/newsletters"));
+    }
+
+    if body.content.html.is_empty() || body.content.text.is_empty() {
+        FlashMessage::error("The content cannot be empty.").send();
+        return Ok(see_other("/admin/newsletters"));
+    }
+
     let subscribers = get_confirmed_subscribers(&pool).await.map_err(e500)?;
+    let mut at_least_one_confirmed_subscriber = false;
     for subscriber in subscribers {
         match subscriber {
             Ok(subscriber) => {
+                at_least_one_confirmed_subscriber = true;
                 email_client
                     .send_email(
                         &subscriber.email,
@@ -60,7 +72,11 @@ pub async fn publish_newsletter(
         }
     }
 
-    FlashMessage::info("The newsletter issue has been published!").send();
+    if at_least_one_confirmed_subscriber {
+        FlashMessage::info("The newsletter issue has been published!").send();
+    } else {
+        FlashMessage::warning("The newsletter has no confirmed subscribers or their stored contact details are invalid.").send();
+    }
     Ok(see_other("/admin/newsletters"))
 }
 
