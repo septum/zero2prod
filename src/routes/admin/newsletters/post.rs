@@ -13,32 +13,27 @@ use crate::{
 #[derive(serde::Deserialize)]
 pub struct NewsletterData {
     title: String,
-    content: Content,
-}
-
-#[derive(serde::Deserialize)]
-pub struct Content {
-    html: String,
-    text: String,
+    html_content: String,
+    text_content: String,
 }
 
 #[tracing::instrument(
     name = "Publish a newsletter issue",
-    skip(body, pool, email_client, user_id),
+    skip(form, pool, email_client, user_id),
     fields(user_id=%*user_id)
 )]
 pub async fn publish_newsletter(
-    body: web::Json<NewsletterData>,
+    form: web::Form<NewsletterData>,
     pool: web::Data<PgPool>,
     email_client: web::Data<EmailClient>,
     user_id: web::ReqData<UserId>,
 ) -> Result<HttpResponse, actix_web::Error> {
-    if body.title.is_empty() {
+    if form.title.is_empty() {
         FlashMessage::error("The title cannot be empty.").send();
         return Ok(see_other("/admin/newsletters"));
     }
 
-    if body.content.html.is_empty() || body.content.text.is_empty() {
+    if form.html_content.is_empty() || form.text_content.trim().is_empty() {
         FlashMessage::error("The content cannot be empty.").send();
         return Ok(see_other("/admin/newsletters"));
     }
@@ -52,9 +47,9 @@ pub async fn publish_newsletter(
                 email_client
                     .send_email(
                         &subscriber.email,
-                        &body.title,
-                        &body.content.html,
-                        &body.content.text,
+                        &form.title,
+                        &form.html_content,
+                        &form.text_content,
                     )
                     .await
                     .with_context(|| {

@@ -12,28 +12,16 @@
       document.addEventListener("DOMContentLoaded", () => {
         const quill = new Quill("#editor", { theme: "snow" });
         const form = document.querySelector("form");
-
-        form.addEventListener("submit", (event) => {
-          event.preventDefault();
-
-          fetch("/admin/newsletters", {
-            method: "post",
-            headers: { "Content-Type": "application/json; charset=utf-8" },
-            body: JSON.stringify({
-              title: event.target.title.value,
-              content: {
-                html: quill.getSemanticHTML(),
-                text: quill.getText(),
-              },
-            }),
-          });
+        form.addEventListener("formdata", (event) => {
+          event.formData.append("html_content", quill.getSemanticHTML());
+          event.formData.append("text_content", quill.getText());
         });
       });
     </script>
   </head>
   <body>
     {{ flash_messages | safe }}
-    <form>
+    <form method="post" action="/admin/newsletters">
       <label
         >Title
         <input type="title" placeholder="Enter newsletter title" name="title" />

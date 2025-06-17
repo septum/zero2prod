@@ -9,7 +9,7 @@ async fn you_must_be_logged_in_to_publish_a_newsletter() {
     let app = spawn_app().await;
 
     // Act - No Login
-    let response = app.post_newsletters(serde_json::json!({})).await;
+    let response = app.post_newsletters("").await;
 
     // Assert
     assert_is_redirect_to(&response, "/login");
@@ -33,36 +33,15 @@ async fn newsletters_returns_400_for_invalid_data() {
     let app = spawn_app().await;
     let test_cases = vec![
         (
-            serde_json::json!({
-                "content": {
-                    "html": "<p>Newsletter body as HTML</p>",
-                    "text": "Newsletter body as plain text",
-                }
-            }),
+            "html_content=<p>Hello!</p>&text_content=Hello!",
             "missing title",
         ),
+        ("title=Hello!", "missing content"),
         (
-            serde_json::json!({"title": "Newsletter!"}),
-            "missing content",
-        ),
-        (
-            serde_json::json!({
-                "title": "Newsletter!",
-                "content": {
-                    "html": "<p>Newsletter body as HTML</p>",
-                }
-            }),
+            "title=Hello!&html_content=<p>Hello!</p>",
             "missing text content",
         ),
-        (
-            serde_json::json!({
-                "title": "Newsletter!",
-                "content": {
-                    "text": "Newsletter body as plain text",
-                }
-            }),
-            "missing html content",
-        ),
+        ("title=Hello!&text_content=Hello!", "missing html content"),
     ];
 
     // Act - Login
@@ -90,23 +69,11 @@ async fn publish_newsletter_form_shows_error_on_empty_parameters() {
     let app = spawn_app().await;
     let test_cases = vec![
         (
-            serde_json::json!({
-                "title": "",
-                "content": {
-                    "html": "<p>Newsletter body as HTML</p>",
-                    "text": "Newsletter body as plain text",
-                }
-            }),
+            "title=&html_content=<p>Hello!</p>&text_content=Hello!",
             "The title cannot be empty.",
         ),
         (
-            serde_json::json!({
-                "title": "Newsletter title",
-                "content": {
-                    "html": "",
-                    "text": "",
-                }
-            }),
+            "title=Hello!&html_content=&text_content=",
             "The content cannot be empty.",
         ),
     ];
@@ -147,14 +114,9 @@ async fn newsletters_are_not_delivered_to_unconfirmed_subscribers() {
     .await;
 
     // Act
-    let newsletter_request_body = serde_json::json!({
-        "title": "Newsletter title",
-        "content": {
-            "text": "Newsletter body as plain text",
-            "html": "<p>Newsletter body as HTML</p>",
-        }
-    });
-    let response = app.post_newsletters(newsletter_request_body).await;
+    let response = app
+        .post_newsletters("title=Hello!&html_content=<p>Hello!</p>&text_content=Hello!")
+        .await;
 
     // Assert
     assert_is_redirect_to(&response, "/admin/newsletters");
@@ -186,14 +148,9 @@ async fn newsletters_are_delivered_to_confirmed_subscribers() {
     .await;
 
     // Act
-    let newsletter_request_body = serde_json::json!({
-        "title": "Newsletter title",
-        "content": {
-            "text": "Newsletter body as plain text",
-            "html": "<p>Newsletter body as HTML</p>",
-        }
-    });
-    let response = app.post_newsletters(newsletter_request_body).await;
+    let response = app
+        .post_newsletters("title=Hello!&html_content=<p>Hello!</p>&text_content=Hello!")
+        .await;
 
     // Assert
     assert_is_redirect_to(&response, "/admin/newsletters");
