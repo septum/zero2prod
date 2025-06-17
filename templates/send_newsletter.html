@@ -16,7 +16,7 @@
         form.addEventListener("submit", (event) => {
           event.preventDefault();
 
-          fetch("/newsletters", {
+          fetch("/admin/newsletters", {
             method: "post",
             headers: { "Content-Type": "application/json; charset=utf-8" },
             body: JSON.stringify({
