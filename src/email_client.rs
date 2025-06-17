@@ -1,20 +1,6 @@
 use crate::domain::SubscriberEmail;
-use lazy_static::lazy_static;
 use reqwest::Client;
 use secrecy::{ExposeSecret, Secret};
-use tera::Tera;
-
-lazy_static! {
-    pub static ref TEMPLATES: Tera = {
-        match Tera::new("templates/*.html") {
-            Ok(t) => t,
-            Err(e) => {
-                println!("Parsing error(s): {}", e);
-                std::process::exit(1);
-            }
-        }
-    };
-}
 
 pub struct EmailClient {
     http_client: Client,
@@ -56,7 +42,7 @@ impl EmailClient {
         subject: &str,
         html_content: &str,
         text_content: &str,
-    ) -> Result<(), reqwest::Error> {
+    ) -> Result<(), anyhow::Error> {
         let url = format!("{}/email", self.base_url);
         let request_body = SendEmailRequest {
             from: self.sender.as_ref(),

@@ -6,7 +6,8 @@ use sqlx::{Executor, PgPool, Postgres, Transaction};
 use uuid::Uuid;
 
 use crate::domain::{NewSubscriber, SubscriberEmail, SubscriberName, SubscriptionToken};
-use crate::email_client::{EmailClient, TEMPLATES};
+use crate::email_client::EmailClient;
+use crate::html_templates::Templates;
 use crate::startup::ApplicationBaseUrl;
 
 #[derive(thiserror::Error)]
@@ -229,7 +230,7 @@ pub async fn send_confirmation_email(
     new_subscriber: NewSubscriber,
     base_url: &str,
     subscription_token: &str,
-) -> Result<(), reqwest::Error> {
+) -> Result<(), anyhow::Error> {
     let confirmation_link = format!(
         "{}/subscriptions/confirm?subscription_token={}",
         base_url, subscription_token
@@ -238,15 +239,7 @@ pub async fn send_confirmation_email(
         "Welcome to our newsletter!\nVisit {} to confirm your subscription.",
         confirmation_link
     );
-    let mut context = tera::Context::new();
-    context.insert("subscriber_name", new_subscriber.name.as_ref());
-    context.insert("confirmation_link", &confirmation_link);
-    let html_body = match TEMPLATES.render("welcome.html", &context) {
-        Ok(body) => body,
-        Err(error) => {
-            panic!("Could not build templates: {error}");
-        }
-    };
+    let html_body = Templates::render_welcome(new_subscriber.name.as_ref(), &confirmation_link)?;
 
     email_client
         .send_email(&new_subscriber.email, "Welcome!", &html_body, &plain_body)
