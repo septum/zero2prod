@@ -37,6 +37,10 @@ watch_test:
 test_w_logs test='':
     RUST_LOG="sqlx=error,info" TEST_LOG=true cargo test {{test}} | bunyan
 
+# Run tests
+test:
+    RUST_LOG="sqlx=error,info" cargo test
+
 # Lint the files in a similar fashion as the CI pipeline
 lint:
     SQLX_OFFLINE=true cargo clippy -- -D warnings
@@ -47,7 +51,7 @@ format:
 
 # Precommit git hook
 precommit:
-    @just format lint check_query_cache test_w_logs
+    @just format lint check_query_cache test
 
 # Test coverage
 coverage:
