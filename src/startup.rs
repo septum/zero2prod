@@ -16,10 +16,11 @@ use tracing_actix_web::TracingLogger;
 use crate::authentication::reject_anonymous_users;
 use crate::configuration::{DatabaseSettings, Settings};
 use crate::email_client::EmailClient;
-use crate::routes::{admin_dashboard, change_password, change_password_form, log_out};
 use crate::routes::{
-    confirm, health_check, home, login, login_form, publish_newsletter, send_newsletter_issue,
-    subscribe,
+    admin_dashboard, change_password, change_password_form, log_out, publish_newsletter_form,
+};
+use crate::routes::{
+    confirm, health_check, home, login, login_form, publish_newsletter, subscribe,
 };
 
 pub struct Application {
@@ -117,7 +118,7 @@ pub async fn run(
                     .route("/password", web::get().to(change_password_form))
                     .route("/password", web::post().to(change_password))
                     .route("/logout", web::post().to(log_out))
-                    .route("/newsletters", web::get().to(send_newsletter_issue))
+                    .route("/newsletters", web::get().to(publish_newsletter_form))
                     .route("/newsletters", web::post().to(publish_newsletter)),
             )
             .app_data(db_pool.clone())

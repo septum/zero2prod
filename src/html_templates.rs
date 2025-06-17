@@ -28,11 +28,11 @@ impl Templates {
             .map_err(|e| anyhow::anyhow!("Could not render welcome template: {e}"))
     }
 
-    pub fn render_send_newsletter(flash_messages: &str) -> Result<String, anyhow::Error> {
+    pub fn render_publish_newsletter(flash_messages: &str) -> Result<String, anyhow::Error> {
         let mut context = tera::Context::new();
         context.insert("flash_messages", &flash_messages);
         TEMPLATES
-            .render("send_newsletter.html", &context)
+            .render("publish_newsletter.html", &context)
             .map_err(|e| anyhow::anyhow!("Could not render send newsletter template: {e}"))
     }
 }
