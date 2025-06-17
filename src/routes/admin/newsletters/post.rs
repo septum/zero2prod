@@ -4,7 +4,10 @@ use anyhow::Context;
 use sqlx::PgPool;
 
 use crate::{
-    authentication::UserId, domain::SubscriberEmail, email_client::EmailClient, utils::e500,
+    authentication::UserId,
+    domain::SubscriberEmail,
+    email_client::EmailClient,
+    utils::{e500, see_other},
 };
 
 #[derive(serde::Deserialize)]
@@ -58,7 +61,7 @@ pub async fn publish_newsletter(
     }
 
     FlashMessage::info("The newsletter issue has been published!").send();
-    Ok(HttpResponse::Ok().finish())
+    Ok(see_other("/admin/newsletters"))
 }
 
 struct ConfirmedSubscriber {
