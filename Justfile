@@ -29,6 +29,10 @@ watch:
 watch_no_test:
     cargo watch -x check -x run | bunyan
 
+# watch without tests
+watch_test:
+    cargo watch -x 'test --features="mocks"'
+
 # Run tests with logs
 test_w_logs test='':
     RUST_LOG="sqlx=error,info" TEST_LOG=true cargo test {{test}} | bunyan
