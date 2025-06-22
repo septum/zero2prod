@@ -1,4 +1,4 @@
-use actix_web::{HttpResponse, web};
+use actix_web::{HttpResponse, error::UrlencodedError, web};
 use actix_web_flash_messages::FlashMessage;
 use anyhow::Context;
 use sqlx::PgPool;
@@ -23,11 +23,23 @@ pub struct NewsletterData {
     fields(user_id=%*user_id)
 )]
 pub async fn publish_newsletter(
-    form: web::Form<NewsletterData>,
+    form: Result<web::Form<NewsletterData>, actix_web::Error>,
     pool: web::Data<PgPool>,
     email_client: web::Data<EmailClient>,
     user_id: web::ReqData<UserId>,
 ) -> Result<HttpResponse, actix_web::Error> {
+    let form = match form {
+        Ok(form) => form,
+        Err(error) => {
+            let message = match error.as_error::<UrlencodedError>() {
+                Some(_) => "The form fields are incorrect, incomplete or badly formatted.",
+                _ => "Something unexpected happened, please report it to the web admin.",
+            };
+            FlashMessage::error(message).send();
+            return Ok(see_other("/admin/newsletters"));
+        }
+    };
+
     if form.title.is_empty() {
         FlashMessage::error("The title cannot be empty.").send();
         return Ok(see_other("/admin/newsletters"));

@@ -32,16 +32,10 @@ async fn newsletters_returns_400_for_invalid_data() {
     // Arrange
     let app = spawn_app().await;
     let test_cases = vec![
-        (
-            "html_content=<p>Hello!</p>&text_content=Hello!",
-            "missing title",
-        ),
-        ("title=Hello!", "missing content"),
-        (
-            "title=Hello!&html_content=<p>Hello!</p>",
-            "missing text content",
-        ),
-        ("title=Hello!&text_content=Hello!", "missing html content"),
+        "html_content=<p>Hello!</p>&text_content=Hello!",
+        "title=Hello!",
+        "title=Hello!&html_content=<p>Hello!</p>",
+        "title=Hello!&text_content=Hello!",
     ];
 
     // Act - Login
@@ -51,15 +45,15 @@ async fn newsletters_returns_400_for_invalid_data() {
     }))
     .await;
 
-    for (invalid_body, error_message) in test_cases {
+    // Assert
+    for invalid_body in test_cases {
         let response = app.post_newsletters(invalid_body).await;
-        // Assert
-        assert_eq!(
-            400,
-            response.status().as_u16(),
-            "The API did not fail with 400 Bad Request when the payload was {}.",
-            error_message
-        );
+        assert_is_redirect_to(&response, "/admin/newsletters");
+
+        let html_page = app.get_newsletters_html().await;
+        assert!(html_page.contains(
+            "<p><i>The form fields are incorrect, incomplete or badly formatted.</i></p>"
+        ));
     }
 }
 
