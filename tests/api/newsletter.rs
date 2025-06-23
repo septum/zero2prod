@@ -28,14 +28,15 @@ async fn you_must_be_logged_in_to_see_the_publish_newsletter_form() {
 }
 
 #[tokio::test]
-async fn newsletters_returns_400_for_invalid_data() {
+async fn newsletters_returns_shows_error_on_invalid_form_data() {
     // Arrange
     let app = spawn_app().await;
     let test_cases = vec![
-        "html_content=<p>Hello!</p>&text_content=Hello!",
-        "title=Hello!",
-        "title=Hello!&html_content=<p>Hello!</p>",
-        "title=Hello!&text_content=Hello!",
+        "html_content=<p>Hello!</p>&text_content=Hello!&idempotency_key=1816bc9c-4bdd-43b3-be5b-5f72f4d00869",
+        "title=Hello!&idempotency_key=1816bc9c-4bdd-43b3-be5b-5f72f4d00869",
+        "title=Hello!&html_content=<p>Hello!</p>&idempotency_key=1816bc9c-4bdd-43b3-be5b-5f72f4d00869",
+        "title=Hello!&text_content=Hello!&idempotency_key=1816bc9c-4bdd-43b3-be5b-5f72f4d00869",
+        "title=Hello!&html_content=<p>Hello!</p>&text_content=Hello!",
     ];
 
     // Act - Login
@@ -58,16 +59,46 @@ async fn newsletters_returns_400_for_invalid_data() {
 }
 
 #[tokio::test]
+async fn newsletters_returns_400_on_invalid_idempotency_key() {
+    // Arrange
+    let app = spawn_app().await;
+    let test_cases = vec![
+        (
+            "title=Hello!&html_content=<p>Hello!</p>&text_content=Hello!&idempotency_key=",
+            "Empty",
+        ),
+        (
+            "title=Hello!&html_content=<p>Hello!</p>&text_content=Hello!&idempotency_key=\
+            aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "Too long",
+        ),
+    ];
+
+    // Act - Login
+    app.post_login(&serde_json::json!({
+        "username": &app.test_user.username,
+        "password": &app.test_user.password
+    }))
+    .await;
+
+    // Assert
+    for (invalid_body, case) in test_cases {
+        let response = app.post_newsletters(invalid_body).await;
+        assert_eq!(400, response.status().as_u16(), "{case}");
+    }
+}
+
+#[tokio::test]
 async fn publish_newsletter_form_shows_error_on_empty_parameters() {
     // Arrange
     let app = spawn_app().await;
     let test_cases = vec![
         (
-            "title=&html_content=<p>Hello!</p>&text_content=Hello!",
+            "title=&html_content=<p>Hello!</p>&text_content=Hello!&idempotency_key=1816bc9c-4bdd-43b3-be5b-5f72f4d00869",
             "The title cannot be empty.",
         ),
         (
-            "title=Hello!&html_content=&text_content=",
+            "title=Hello!&html_content=&text_content=&idempotency_key=1816bc9c-4bdd-43b3-be5b-5f72f4d00869",
             "The content cannot be empty.",
         ),
     ];
@@ -109,7 +140,10 @@ async fn newsletters_are_not_delivered_to_unconfirmed_subscribers() {
 
     // Act
     let response = app
-        .post_newsletters("title=Hello!&html_content=<p>Hello!</p>&text_content=Hello!")
+        .post_newsletters(&format!(
+            "title=Hello!&html_content=<p>Hello!</p>&text_content=Hello!&idempotency_key={}",
+            uuid::Uuid::new_v4().to_string()
+        ))
         .await;
 
     // Assert
@@ -143,7 +177,10 @@ async fn newsletters_are_delivered_to_confirmed_subscribers() {
 
     // Act
     let response = app
-        .post_newsletters("title=Hello!&html_content=<p>Hello!</p>&text_content=Hello!")
+        .post_newsletters(&format!(
+            "title=Hello!&html_content=<p>Hello!</p>&text_content=Hello!&idempotency_key={}",
+            uuid::Uuid::new_v4().to_string()
+        ))
         .await;
 
     // Assert

@@ -7,7 +7,8 @@ use crate::{
     authentication::UserId,
     domain::SubscriberEmail,
     email_client::EmailClient,
-    utils::{e500, see_other},
+    idempotency::{IdempotencyKey, get_saved_response, save_response},
+    utils::{e400, e500, see_other},
 };
 
 #[derive(serde::Deserialize)]
@@ -15,6 +16,7 @@ pub struct NewsletterData {
     title: String,
     html_content: String,
     text_content: String,
+    idempotency_key: String,
 }
 
 #[tracing::instrument(
@@ -28,8 +30,14 @@ pub async fn publish_newsletter(
     email_client: web::Data<EmailClient>,
     user_id: web::ReqData<UserId>,
 ) -> Result<HttpResponse, actix_web::Error> {
-    let form = match form {
-        Ok(form) => form,
+    let user_id = user_id.into_inner();
+    let NewsletterData {
+        title,
+        text_content,
+        html_content,
+        idempotency_key,
+    } = match form {
+        Ok(form) => form.0,
         Err(error) => {
             let message = match error.as_error::<UrlencodedError>() {
                 Some(_) => "The form fields are incorrect, incomplete or badly formatted.",
@@ -40,12 +48,22 @@ pub async fn publish_newsletter(
         }
     };
 
-    if form.title.is_empty() {
+    let idempotency_key: IdempotencyKey = idempotency_key.try_into().map_err(e400)?;
+
+    if let Some(saved_response) = get_saved_response(&pool, &idempotency_key, *user_id)
+        .await
+        .map_err(e500)?
+    {
+        FlashMessage::info("The newsletter issue has been published!").send();
+        return Ok(saved_response);
+    }
+
+    if title.is_empty() {
         FlashMessage::error("The title cannot be empty.").send();
         return Ok(see_other("/admin/newsletters"));
     }
 
-    if form.html_content.is_empty() || form.text_content.trim().is_empty() {
+    if html_content.is_empty() || text_content.trim().is_empty() {
         FlashMessage::error("The content cannot be empty.").send();
         return Ok(see_other("/admin/newsletters"));
     }
@@ -57,12 +75,7 @@ pub async fn publish_newsletter(
             Ok(subscriber) => {
                 at_least_one_confirmed_subscriber = true;
                 email_client
-                    .send_email(
-                        &subscriber.email,
-                        &form.title,
-                        &form.html_content,
-                        &form.text_content,
-                    )
+                    .send_email(&subscriber.email, &title, &html_content, &text_content)
                     .await
                     .with_context(|| {
                         format!("Failed to send newsletter issue to {}", subscriber.email)
@@ -81,10 +94,15 @@ pub async fn publish_newsletter(
 
     if at_least_one_confirmed_subscriber {
         FlashMessage::info("The newsletter issue has been published!").send();
+        let response = see_other("/admin/newsletters");
+        let response = save_response(&pool, &idempotency_key, *user_id, response)
+            .await
+            .map_err(e500)?;
+        return Ok(response);
     } else {
         FlashMessage::warning("The newsletter has no confirmed subscribers or their stored contact details are invalid.").send();
+        return Ok(see_other("/admin/newsletters"));
     }
-    Ok(see_other("/admin/newsletters"))
 }
 
 struct ConfirmedSubscriber {

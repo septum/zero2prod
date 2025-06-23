@@ -15,7 +15,9 @@ pub async fn publish_newsletter_form(
         writeln!(messages, "<p><i>{}</i></p>", m.content()).unwrap();
     }
 
-    let html_body = Templates::render_publish_newsletter(&messages).map_err(e500)?;
+    let idempotency_key = uuid::Uuid::new_v4();
+    let html_body =
+        Templates::render_publish_newsletter(&messages, idempotency_key).map_err(e500)?;
     Ok(HttpResponse::Ok()
         .content_type(ContentType::html())
         .body(html_body))

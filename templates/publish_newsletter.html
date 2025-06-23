@@ -32,6 +32,12 @@
         <div id="editor"></div>
       </div>
       <br />
+      <input
+        hidden
+        type="text"
+        name="idempotency_key"
+        value="{{ idempotency_key | safe }}"
+      />
       <button type="submit">Publish</button>
     </form>
     <p><a href="/admin/dashboard">&lt;- Back</a></p>
