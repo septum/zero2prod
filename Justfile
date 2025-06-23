@@ -39,7 +39,7 @@ test_w_logs test='':
 
 # Run tests
 test:
-    RUST_LOG="sqlx=error,info" cargo test
+    cargo test
 
 # Lint the files in a similar fashion as the CI pipeline
 lint:
